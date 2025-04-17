@@ -1,0 +1,27 @@
+module m_random_distributions
+    use iso_fortran_env, only: dp => real64
+    implicit none
+
+    private
+    public sample_binomial
+
+contains
+
+    !> Binomial(n, p) の乱数サンプルを返す関数
+    !! n: 試行回数
+    !! p: 成功確率 (0<=p<=1)
+    !! 戻り値: 成功回数 (0..n)
+    function sample_binomial(n, p) result(k)
+        integer, intent(in)    :: n
+        real(dp), intent(in)   :: p
+        integer                :: k, i
+        real(dp)               :: u
+
+        k = 0
+        do i = 1, n
+            call random_number(u)
+            if (u < p) k = k + 1
+        end do
+    end function sample_binomial
+
+end module
