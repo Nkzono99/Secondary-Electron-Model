@@ -205,3 +205,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+*.i90
+*.ipynb
+*.csv
+*.png
+*.txt
+*.sh
