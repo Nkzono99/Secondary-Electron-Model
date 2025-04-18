@@ -1,9 +1,6 @@
 ! secondary_emission.f90
 module secondary_emission_module
     use m_special_functions
-    use stdlib_dpecialfunctions_gamma_dp
-    ! use m_scipy_special
-    ! use m_gammaCHI_wrapper
     use m_cephes
     use m_constants
     use iso_fortran_env, only: dp => real64
@@ -167,8 +164,8 @@ contains
             Pn = comb(params%M, n)*pval**n*(1.0_dp - pval)**(params%M - n)
             
             a = Pn*(E/params%epsilon_n(n))**(params%pn(n) - 1.0_dp)*exp(-E/params%epsilon_n(n))
-            b = params%epsilon_n(n)*gamma(params%pn(n))*lower_incomplete_gamma(n*params%pn(n), E0/params%epsilon_n(n))
-            c = lower_incomplete_gamma((n - 1)*params%pn(n), (E0 - E)/params%epsilon_n(n))
+            b = params%epsilon_n(n)*gamma(params%pn(n))*gammainc(n*params%pn(n), E0/params%epsilon_n(n))
+            c = gammainc((n - 1)*params%pn(n), (E0 - E)/params%epsilon_n(n))
             
             ftot = ftot + n*a/b*c
         end do
@@ -230,7 +227,7 @@ contains
         eps    = params%epsilon_n(n)
     
         ! 下側正規化不完全ガンマ関数 P(a, x)
-        cdf = lower_incomplete_gamma(pn_val, E0/eps)
+        cdf = gammainc(pn_val, E0/eps)
     
         call random_number(u)
         x = u * cdf
