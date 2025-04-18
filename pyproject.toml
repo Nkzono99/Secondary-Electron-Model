@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "semodel"
+version = "0.1.0"
+description = "Secondary Electron Model"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Nkzono99", email = "210x218x@gsuite.kobe-u.ac.jp" }]
+dependencies = ["numpy", "matplotlib", "scipy"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[tool.jupytext]
+formats = "ipynb,py:percent"
