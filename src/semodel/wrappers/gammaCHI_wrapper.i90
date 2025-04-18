@@ -1,0 +1,22 @@
+# 1 "/home/b/b36291/large0/Github/Secondary-Electron-Model/src/semodel/wrappers/gammaCHI_wrapper.f90"
+module m_gammaCHI_wrapper
+    use GammaCHI, only: invcdfgamC
+    use iso_fortran_env, only: dp => real64
+    implicit none
+
+    private
+    public gammaincinv
+
+    contains
+
+    function gammaincinv(a, p) result(ret)
+        real(dp), intent(in) :: a
+        real(dp), intent(in) :: p
+        real(dp) :: ret
+
+        integer :: ierr
+
+        call invcdfgamC(1, a, p, 1-p, ret, ierr)
+! call invcdfgamC(1, a, 1-p, p, ret, ierr)
+    end function
+end module
