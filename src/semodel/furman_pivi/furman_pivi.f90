@@ -1,5 +1,5 @@
 ! secondary_emission.f90
-module secondary_emission_module
+module m_furman_pivi
     use m_special_functions
     use m_cephes
     use m_constants
@@ -230,4 +230,4 @@ contains
         Eout = eps * gammaincinv(pn_val, x)
       end function sample_ts
 
-end module secondary_emission_module
+end module
