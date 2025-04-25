@@ -7,6 +7,7 @@ module m_special_functions
     public erfinv
 
 contains
+
     elemental function erfinv(x) result(res)
         real(dp), intent(in) :: x
         real(dp) :: a, t, res, p, q

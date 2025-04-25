@@ -171,20 +171,12 @@ contains
         end do
     end function energy_ts
 
-    !----------------------------------------------------------------
-    ! ヘルパー関数：二項係数、ガンマ関数、不完全ガンマなど
-    !----------------------------------------------------------------
     pure function comb(n, k) result(c)
         integer, intent(in):: n, k
         real(dp) :: c
 
         c = gamma(real(n + 1, dp))/(gamma(real(k + 1, dp))*gamma(real(n - k + 1, dp)))
     end function comb
-
-    ! 以下はリンクするライブラリに合わせて要調整
-    ! intrinsic: exp, abs, cos, sin, tanh, sqrt, erf, gamma
-    ! external or library: igammainc(a,x) = 下側不完全ガンマ関数 Γ(a,x)
-    !                        igammainv(a,y)= 逆不完全ガンマ関数
 
     function sample_e(params, E0) result(Eout)
         type(SecondaryEmissionParams), intent(in) :: params
