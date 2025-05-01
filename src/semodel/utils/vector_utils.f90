@@ -2,6 +2,9 @@ module m_vector_utils
     implicit none
     integer, parameter :: dp = kind(1.0d0)
 
+    private
+    public compute_velocity
+
 contains
 
     !---------------------------------------------------

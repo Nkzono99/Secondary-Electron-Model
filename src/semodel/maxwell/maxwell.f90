@@ -7,6 +7,7 @@ module m_maxwell
     private
 
     public t_MaxwellModel
+    public new_MaxwellModel
 
     type, extends(t_SEModelBase) :: t_MaxwellModel
         real(dp) :: yield
