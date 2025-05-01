@@ -3,7 +3,9 @@ module m_furman_pivi
     use m_special_functions
     use m_cephes
     use m_constants
+    use m_semodel_base
     use iso_fortran_env, only: dp => real64
+    use m_random_distributions
     implicit none
 
     private
@@ -45,7 +47,71 @@ module m_furman_pivi
         real(dp), allocatable :: epsilon_n(:)  ! 真二次電子のエネルギースケールリスト
     end type SecondaryEmissionParams
 
+    type, extends(t_SEModelBase) :: FurmanPiviModel
+        type(SecondaryEmissionParams) :: params
+    contains
+        procedure :: sample_particles => fp_sample_particles
+    end type
+
 contains
+
+    subroutine fp_sample_particles(self, E0, theta0, n, type, Es, dirs)
+        class(FurmanPiviModel), intent(inout) :: self
+        real(dp), intent(in) :: E0
+        real(dp), intent(in) :: theta0
+        integer, intent(out) :: n
+        integer, intent(out)   :: type
+        real(dp), intent(out) :: Es(:)
+        real(dp), intent(out) :: dirs(:, :)
+
+        real(dp) :: de, dr, dts
+        real(dp) :: u
+
+        integer :: i
+
+        de = delta_e(self%params, e0, theta0)
+        dr = delta_r(self%params, e0, theta0)
+        dts = delta_ts(self%params, e0, theta0)
+
+        call sample_uniform(u)
+
+        u = u - de
+        if (u < 0) then
+            type = 1
+            n = 1
+
+            Es(1) = sample_e(self%params, E0)
+            call sample_hemisphere(dirs(:, 1))
+            return
+        end if
+
+        u = u - de
+        if (u < 0) then
+            type = 2
+            n = 1
+
+            Es(1) = sample_r(self%params, E0)
+            call sample_hemisphere(dirs(:, 1))
+            return
+        end if
+
+        u = u - (1 - self%params%p)**(self%params%M)
+        if (u < 0) then
+            n = 0
+            return
+        end if
+
+        type = 3
+        n = sample_binomial(self%params%M, self%params%p)
+
+        do i = 1, n
+            Es(i) = sample_ts(self%params, E0, n)
+        end do
+
+        do i = 1, n
+            call sample_hemisphere(dirs(:, i))
+        end do
+    end subroutine
 
     subroutine init_params(params, pn_in, eps_in)
         type(SecondaryEmissionParams), intent(out) :: params
@@ -63,7 +129,7 @@ contains
         real(dp) :: delta
 
         real(dp) :: t, d0, ang
-        
+
         t = -((abs(E0 - params%E_hat_e)/params%W)**params%p)/params%p
         d0 = params%P_infty_e + (params%P_hat_e - params%P_infty_e)*exp(t)
         ang = 1.0_dp + params%e1*(1.0_dp - cos(theta0)**params%e2)
@@ -76,7 +142,7 @@ contains
         real(dp) :: delta
 
         real(dp) :: t, d0, ang
-        
+
         t = -((E0/params%Er)**params%r)
         d0 = params%P_infty_r*(1.0_dp - exp(t))
         ang = 1.0_dp + params%r1*(1.0_dp - cos(theta0)**params%r2)
@@ -136,9 +202,9 @@ contains
             f = 0.0_dp
             return
         end if
-        
+
         d0 = delta_r(params, E0, theta0)
-        
+
         a = (params%q + 1.0_dp)*(E**params%q)
         b = E0**(params%q + 1.0_dp)
 
@@ -162,11 +228,11 @@ contains
 
         do n = 1, params%M
             Pn = comb(params%M, n)*pval**n*(1.0_dp - pval)**(params%M - n)
-            
+
             a = Pn*(E/params%epsilon_n(n))**(params%pn(n) - 1.0_dp)*exp(-E/params%epsilon_n(n))
             b = params%epsilon_n(n)*gamma(params%pn(n))*gammainc(n*params%pn(n), E0/params%epsilon_n(n))
             c = gammainc((n - 1)*params%pn(n), (E0 - E)/params%epsilon_n(n))
-            
+
             ftot = ftot + n*a/b*c
         end do
     end function energy_ts
@@ -183,51 +249,49 @@ contains
         real(dp), intent(in)                   :: E0
         real(dp)                               :: aa, bb, cc, dd
         real(dp)                               :: sigma_mod, u, arg, Eout
-    
-        aa = 1.88_dp;  bb = 2.5_dp
+
+        aa = 1.88_dp; bb = 2.5_dp
         cc = 1.0e-2_dp; dd = 1.5e2_dp
-    
+
         ! sigma の修正
-        sigma_mod = (params%sigma_e - aa) + bb * (1.0_dp + tanh(cc*(E0 - dd)))
-    
+        sigma_mod = (params%sigma_e - aa) + bb*(1.0_dp + tanh(cc*(E0 - dd)))
+
         ! 一様乱数
         call random_number(u)
-    
+
         ! 逆誤差関数 erfinv() と erf() をライブラリから呼び出し
-        arg  = (u - 1.0_dp) * erf(E0/(sqrt(2.0_dp)*sigma_mod))
-        Eout = E0 + sqrt(2.0_dp) * sigma_mod * erfinv(arg)
-      end function sample_e
-    
-    
-      function sample_r(params, E0) result(Eout)
+        arg = (u - 1.0_dp)*erf(E0/(sqrt(2.0_dp)*sigma_mod))
+        Eout = E0 + sqrt(2.0_dp)*sigma_mod*erfinv(arg)
+    end function sample_e
+
+    function sample_r(params, E0) result(Eout)
         type(SecondaryEmissionParams), intent(in) :: params
         real(dp), intent(in)                   :: E0
         real(dp)                               :: u, Eout
-    
+
         call random_number(u)
-        Eout = u**(1.0_dp/(params%q + 1.0_dp)) * E0
-      end function sample_r
-    
-    
-      function sample_ts(params, E0, n) result(Eout)
+        Eout = u**(1.0_dp/(params%q + 1.0_dp))*E0
+    end function sample_r
+
+    function sample_ts(params, E0, n) result(Eout)
         type(SecondaryEmissionParams), intent(in) :: params
         real(dp), intent(in)                   :: E0
         integer, intent(in)                    :: n
         real(dp)                               :: pn_val, eps, cdf, u, x, Eout
-    
+
         pn_val = params%pn(n)
-        eps    = params%epsilon_n(n)
-    
+        eps = params%epsilon_n(n)
+
         ! 下側正規化不完全ガンマ関数 P(a, x)
         cdf = gammainc(pn_val, E0/eps)
-    
+
         call random_number(u)
-        x = u * cdf
+        x = u*cdf
         if (x < 1.0e-12_dp) x = 0.0_dp
         ! print *, '------', x
-    
+
         ! 逆下側正規化不完全ガンマ関数 P^{-1}(a, x)
-        Eout = eps * gammaincinv(pn_val, x)
-      end function sample_ts
+        Eout = eps*gammaincinv(pn_val, x)
+    end function sample_ts
 
 end module
