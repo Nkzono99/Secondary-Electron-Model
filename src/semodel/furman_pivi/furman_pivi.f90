@@ -2,7 +2,7 @@
 module m_furman_pivi
     use m_special_functions
     use m_cephes
-    use m_constants
+    use stdlib_constants, only: PI_dp
     use m_semodel_base
     use iso_fortran_env, only: dp => real64
     use m_random_distributions
@@ -196,7 +196,7 @@ contains
         d0 = delta_e(params, E0, theta0)
 
         a = 2.0_dp*exp(-((E - E0)**2)/(2.0_dp*sigma_mod**2))
-        b = sqrt(2.0_dp*pi)*sigma_mod*erf(E0/(sqrt(2.0_dp)*sigma_mod))
+        b = sqrt(2.0_dp*PI_dp)*sigma_mod*erf(E0/(sqrt(2.0_dp)*sigma_mod))
 
         f = d0*a/b
     end function energy_e
