@@ -10,6 +10,8 @@ module m_furman_pivi
 
     private
     public :: SecondaryEmissionParams
+    public :: t_FurmanPiviModel
+    public :: new_FurmanPiviModel
     public :: init_params, delta_e, delta_r, delta_ts
     public :: energy_e, energy_r, energy_ts
     public :: sample_e, sample_r, sample_ts
@@ -47,7 +49,7 @@ module m_furman_pivi
         real(dp), allocatable :: epsilon_n(:)  ! 真二次電子のエネルギースケールリスト
     end type SecondaryEmissionParams
 
-    type, extends(t_SEModelBase) :: FurmanPiviModel
+    type, extends(t_SEModelBase) :: t_FurmanPiviModel
         type(SecondaryEmissionParams) :: params
     contains
         procedure :: sample_particles => fp_sample_particles
@@ -55,8 +57,16 @@ module m_furman_pivi
 
 contains
 
+    function new_FurmanPiviModel(params) result(obj)
+        type(SecondaryEmissionParams), intent(in) :: params
+
+        type(t_FurmanPiviModel) :: obj
+
+        obj%params = params
+    end function
+
     subroutine fp_sample_particles(self, E0, theta0, n, type, Es, dirs)
-        class(FurmanPiviModel), intent(inout) :: self
+        class(t_FurmanPiviModel), intent(inout) :: self
         real(dp), intent(in) :: E0
         real(dp), intent(in) :: theta0
         integer, intent(out) :: n

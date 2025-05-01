@@ -18,6 +18,17 @@ module m_maxwell
 
 contains
 
+    function new_MaxwellModel(yield, mu, sigma) result(obj)
+        real(dp), intent(in) :: yield
+        real(dp), intent(in) :: mu
+        real(dp), intent(in) :: sigma
+        type(t_MaxwellModel) :: obj
+
+        obj%yield = yield
+        obj%mu = mu
+        obj%sigma = sigma
+    end function
+
     subroutine mx_sample_particles(self, E0, theta0, n, type, Es, dirs)
         class(t_MaxwellModel), intent(inout) :: self
         real(dp), intent(in) :: E0
