@@ -41,6 +41,10 @@ module m_furman_pivi
         real(dp) :: t1, t2, t3, t4  ! 角度依存性パラメータ
 
         ! --- エネルギースペクトル補正パラメータ ---
+        real(dp) :: aa = 1.88_dp
+        real(dp) :: bb = 2.5_dp
+        real(dp) :: cc = 1.0e-2_dp
+        real(dp) :: dd = 1.5e2_dp
         real(dp) :: sigma_e      ! 分散調整
         real(dp) :: q            ! 反拡散分布の指数
 
@@ -190,8 +194,7 @@ contains
             return
         end if
 
-        aa = 1.88_dp; bb = 2.5_dp; cc = 1.0e-2_dp; dd = 1.5e2_dp
-        sigma_mod = (params%sigma_e - aa) + bb*(1.0_dp + tanh(cc*(E0 - dd)))
+        sigma_mod = (params%sigma_e - params%aa) + params%bb*(1.0_dp + tanh(params%cc*(E0 - params%dd)))
 
         d0 = delta_e(params, E0, theta0)
 
@@ -260,11 +263,7 @@ contains
         real(dp)                               :: aa, bb, cc, dd
         real(dp)                               :: sigma_mod, u, arg, Eout
 
-        aa = 1.88_dp; bb = 2.5_dp
-        cc = 1.0e-2_dp; dd = 1.5e2_dp
-
-        ! sigma の修正
-        sigma_mod = (params%sigma_e - aa) + bb*(1.0_dp + tanh(cc*(E0 - dd)))
+        sigma_mod = (params%sigma_e - params%aa) + params%bb*(1.0_dp + tanh(params%cc*(E0 - params%dd)))
 
         ! 一様乱数
         call random_number(u)
